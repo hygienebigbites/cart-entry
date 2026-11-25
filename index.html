@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6feb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Cart Entry</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --ink:#1b1f24; --muted:#5f6b7a; --line:#dde1e6; --brand:#1f6feb;
+          --ok:#1a7f37; --err:#cf222e; --swiggy:#fc8019; --zomato:#e23744; --ownly:#2b6a4f; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0d1117; --card:#161b22; --ink:#e6edf3; --muted:#9aa5b1; --line:#30363d; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  main { max-width:520px; margin:0 auto; padding:16px 16px 120px; }
+  h1 { font-size:22px; margin:8px 0 4px; }
+  .sub { color:var(--muted); margin:0 0 16px; font-size:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; }
+  label.t { display:block; font-weight:600; margin-bottom:8px; }
+  input[type=date], input[type=text], input[type=password], textarea {
+    width:100%; font-size:17px; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
+  textarea { min-height:60px; resize:vertical; }
+  .agg { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .agg button { padding:14px 4px; font-size:16px; font-weight:700; border-radius:10px; border:2px solid var(--line);
+                background:var(--card); color:var(--ink); }
+  .agg button[data-v=Swiggy].on { background:var(--swiggy); border-color:var(--swiggy); color:#fff; }
+  .agg button[data-v=Zomato].on { background:var(--zomato); border-color:var(--zomato); color:#fff; }
+  .agg button[data-v=Ownly].on  { background:var(--ownly);  border-color:var(--ownly);  color:#fff; }
+  .hint { font-size:14px; color:var(--muted); margin:8px 0 0; padding-left:18px; }
+  .pick { display:block; text-align:center; padding:18px; border:2px dashed var(--brand); border-radius:12px;
+          color:var(--brand); font-weight:700; font-size:17px; }
+  .pick input { display:none; }
+  .thumbs { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px; }
+  .thumb { position:relative; aspect-ratio:9/16; border-radius:8px; overflow:hidden; border:1px solid var(--line); }
+  .thumb img { width:100%; height:100%; object-fit:cover; object-position:top; }
+  .thumb b { position:absolute; left:4px; top:4px; background:rgba(0,0,0,.6); color:#fff; font-size:12px; padding:1px 6px; border-radius:8px; }
+  .thumb button { position:absolute; right:3px; top:3px; width:26px; height:26px; border-radius:50%; border:0;
+                  background:rgba(0,0,0,.65); color:#fff; font-size:15px; line-height:26px; padding:0; }
+  .count { font-size:14px; margin-top:8px; color:var(--muted); }
+  .count.good { color:var(--ok); font-weight:600; }
+  .bar { position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line);
+         padding:12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .bar .in { max-width:520px; margin:0 auto; }
+  #send { width:100%; padding:16px; font-size:18px; font-weight:700; border:0; border-radius:12px; background:var(--brand); color:#fff; }
+  #send:disabled { opacity:.5; }
+  .msg { margin-top:8px; text-align:center; font-weight:600; min-height:1.4em; }
+  .msg.ok { color:var(--ok); } .msg.err { color:var(--err); }
+  details summary { cursor:pointer; color:var(--muted); font-size:14px; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Cart Entry</h1>
+  <p class="sub">One submission = one cart. The sheet is filled automatically within a few minutes.</p>
+
+  <section class="card" id="who">
+    <div class="row2">
+      <div><label class="t" for="name">Your name</label><input id="name" type="text" autocomplete="name" placeholder="e.g. Ravi"></div>
+      <div><label class="t" for="pin">Team PIN</label><input id="pin" type="password" inputmode="numeric" placeholder="4 digits"></div>
+    </div>
+    <label class="t" for="unum" style="margin-top:10px">Account phone number (User number)</label>
+    <input id="unum" type="tel" inputmode="numeric" placeholder="Number used to log in to the app">
+  </section>
+
+  <section class="card">
+    <label class="t" for="date">Order date</label>
+    <input id="date" type="date">
+  </section>
+
+  <section class="card">
+    <label class="t">Aggregator</label>
+    <div class="agg" id="agg">
+      <button type="button" data-v="Swiggy">Swiggy</button>
+      <button type="button" data-v="Zomato">Zomato</button>
+      <button type="button" data-v="Ownly">Ownly</button>
+    </div>
+    <ol class="hint" id="hint"><li>Pick the aggregator to see which screenshots to take.</li></ol>
+  </section>
+
+  <section class="card">
+    <label class="t">Screenshots (4 per cart)</label>
+    <label class="pick">📷 Add screenshots<input id="files" type="file" accept="image/*" multiple></label>
+    <div class="thumbs" id="thumbs"></div>
+    <div class="count" id="count">0 of 4 added</div>
+  </section>
+
+  <section class="card">
+    <details><summary>Add a note (optional)</summary>
+      <textarea id="note" placeholder="e.g. Rain fee shown, coupon not applied"></textarea>
+    </details>
+  </section>
+</main>
+
+<div class="bar"><div class="in">
+  <button id="send" disabled>Submit cart</button>
+  <div class="msg" id="msg"></div>
+</div></div>
+
+<script>
+/* ====== SET THIS ONCE: the Web app URL from Apps Script (Deploy > Manage deployments) ====== */
+const FIXED_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';   // optional: paste here, or open the page once with ?s=<web app URL>
+const SCRIPT_URL = (() => {
+  if (FIXED_URL.indexOf('https://script.google.com/') === 0) return FIXED_URL;
+  let u = '';
+  try { u = new URLSearchParams(location.search).get('s') || ''; } catch (e) {}
+  if (u.indexOf('https://script.google.com/') === 0) { try { localStorage.setItem('ce_api', u); } catch (e) {} return u; }
+  try { return localStorage.getItem('ce_api') || ''; } catch (e) { return ''; }
+})();
+const EXPECTED = 4, MAX = 8, MAX_W = 1080, QUALITY = 0.85, MAX_RATIO = 2.6; // taller images are cut into parts
+
+const HINTS = {
+  Swiggy: ['Top of cart: restaurant name, items, Item Total',
+           'Savings section: discounts + coupon code',
+           'Bill: Delivery fee (with distance) and "GST & other charges" tapped open',
+           'Bottom: To Pay amount'],
+  Zomato: ['Top of cart: restaurant name, items',
+           '"Save extra by applying coupons" section with discounts / code',
+           'Bill summary opened: packaging, delivery partner fee, platform fee',
+           'GST breakdown and the final To Pay'],
+  Ownly:  ['Top of cart: restaurant name, items',
+           'Discounts / coupon section',
+           'Full bill breakdown (all charges, taxes)',
+           'Final payable amount']
+};
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){ try { return localStorage.getItem(k) || ''; } catch(e){ return ''; } },
+  set(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+};
+let aggregator = '', shots = [];   // shots: [{name, mime, data, url}]
+
+// Defaults
+$('name').value = store.get('ce_name');
+$('pin').value = store.get('ce_pin');
+$('unum').value = store.get('ce_unum');
+const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+$('date').value = d.toISOString().slice(0,10);
+
+$('agg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  aggregator = b.dataset.v;
+  [...$('agg').children].forEach(x => x.classList.toggle('on', x === b));
+  $('hint').innerHTML = HINTS[aggregator].map(h => '<li>' + h + '</li>').join('');
+  store.set('ce_agg', aggregator);
+  refresh();
+});
+const lastAgg = store.get('ce_agg');
+if (lastAgg) { const b = $('agg').querySelector('[data-v="' + lastAgg + '"]'); if (b) b.click(); }
+
+$('files').addEventListener('change', async e => {
+  const list = [...e.target.files];
+  e.target.value = '';
+  for (const f of list) {
+    if (shots.length >= MAX) { say('Max ' + MAX + ' screenshots per cart', 'err'); break; }
+    try { (await compress(f)).forEach(p => { if (shots.length < MAX) shots.push(p); }); }
+    catch (err) { say('Could not read ' + f.name, 'err'); }
+  }
+  render(); refresh();
+});
+
+function compress(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, MAX_W / img.width);
+      const W = Math.round(img.width * scale), H = Math.round(img.height * scale);
+      // A long scrolling screenshot is cut into overlapping parts, otherwise the text gets too small to read
+      const partH = Math.round(W * 2), step = Math.round(partH * 0.9);
+      const tops = H <= W * MAX_RATIO ? [0] : [];
+      if (!tops.length) { for (let y = 0; y < H - partH; y += step) tops.push(y); tops.push(H - partH); }
+      const base = (file.name || 'shot').replace(/\.\w+$/, '');
+      const parts = tops.map((top, i) => {
+        const h = tops.length === 1 ? H : partH;
+        const c = document.createElement('canvas'); c.width = W; c.height = h;
+        c.getContext('2d').drawImage(img, 0, top / scale, img.width, h / scale, 0, 0, W, h);
+        const dataUrl = c.toDataURL('image/jpeg', QUALITY);
+        return { name: base + (tops.length > 1 ? '_part' + (i + 1) : '') + '.jpg', mime: 'image/jpeg',
+                 data: dataUrl.split(',')[1], url: dataUrl };
+      });
+      URL.revokeObjectURL(url);
+      resolve(parts);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+function render() {
+  $('thumbs').innerHTML = shots.map((s, i) =>
+    '<div class="thumb"><img src="' + s.url + '" alt=""><b>' + (i+1) + '</b>' +
+    '<button type="button" data-i="' + i + '" aria-label="Remove">×</button></div>').join('');
+  const n = shots.length;
+  $('count').textContent = n + ' image(s) added' + (n && n < EXPECTED ? ' (usually 4: add the rest if the bill is not fully covered)' : '');
+  $('count').className = 'count' + (n >= EXPECTED ? ' good' : '');
+}
+$('thumbs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-i]'); if (!b) return;
+  shots.splice(+b.dataset.i, 1); render(); refresh();
+});
+
+function refresh() {
+  $('send').disabled = !(aggregator && shots.length && $('date').value && $('pin').value.trim() && $('name').value.trim());
+}
+['name','pin','date'].forEach(id => $(id).addEventListener('input', refresh));
+
+function say(t, cls) { $('msg').textContent = t; $('msg').className = 'msg ' + (cls || ''); }
+
+$('send').addEventListener('click', async () => {
+  if (SCRIPT_URL.indexOf('https://script.google.com/') !== 0) { say('Setup not finished: open the full staff link from your admin once', 'err'); return; }
+  if (shots.length < EXPECTED && !confirm('Only ' + shots.length + ' screenshot(s). Submit anyway?')) return;
+  store.set('ce_name', $('name').value.trim()); store.set('ce_pin', $('pin').value.trim()); store.set('ce_unum', $('unum').value.trim());
+  $('send').disabled = true; say('Uploading…');
+  try {
+    const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({
+      pin: $('pin').value.trim(), name: $('name').value.trim(), userNumber: $('unum').value.trim(), date: $('date').value,
+      aggregator, note: $('note').value.trim(),
+      files: shots.map(s => ({ name: s.name, mime: s.mime, data: s.data }))
+    })});
+    const out = await res.json();
+    if (!out.ok) throw new Error(out.error || 'Upload failed');
+    shots = []; $('note').value = ''; render();
+    say('✓ Saved. ' + out.today + ' cart(s) submitted for ' + $('date').value + '.', 'ok');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (err) {
+    say('Not saved: ' + err.message + '. Check internet and tap Submit again.', 'err');
+  } finally { refresh(); }
+});
+
+render(); refresh();
+</script>
+</body>
+</html>
